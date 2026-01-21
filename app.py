@@ -1,36 +1,35 @@
 import streamlit as st
 from PIL import Image
+import requests
+from io import BytesIO
 
-st.set_page_config(page_title="🥤 Drink Detector", layout="centered")
-st.title("🥤 Simple Drink Label Detector")
-st.write("This version does not use TensorFlow or PyTorch. It uses a simple label mapping.")
-
-# -------------------------------
-# Load Labels
-# -------------------------------
-labels_file = "labels.txt"
-with open(labels_file, "r") as f:
-    drink_labels = [line.strip() for line in f.readlines()]
+st.set_page_config(page_title="🥤 Auto Drink Detector", layout="centered")
+st.title("🥤 Drink Detector Demo (No Upload Needed)")
 
 # -------------------------------
-# Upload Image
+# Drink images URLs (example)
 # -------------------------------
-uploaded_file = st.file_uploader("Upload Drink Image", type=["jpg", "jpeg", "png"])
+drink_data = {
+    "Coca-Cola": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_can.jpg",
+    "Pepsi": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Pepsi_can.jpg",
+    "Red Bull": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Red_Bull_can.jpg",
+    "Sprite": "https://upload.wikimedia.org/wikipedia/commons/3/36/Sprite_can.jpg",
+    "Fanta": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Fanta_can.jpg"
+}
 
-if uploaded_file:
-    image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+# -------------------------------
+# Display drink images
+# -------------------------------
+st.write("### Available Drinks")
+cols = st.columns(len(drink_data))
+for col, (label, url) in zip(cols, drink_data.items()):
+    response = requests.get(url)
+    img = Image.open(BytesIO(response.content))
+    col.image(img, caption=label, use_column_width=True)
 
-    # -------------------------------
-    # Simple detection (filename match)
-    # -------------------------------
-    detected_label = "Unknown"
+# -------------------------------
+# User selects a drink to detect
+# -------------------------------
+selected_drink = st.selectbox("Select a drink to detect:", list(drink_data.keys()))
 
-    # Check if any label is in the filename
-    filename = uploaded_file.name.lower()
-    for label in drink_labels:
-        if label.lower().replace(" ", "") in filename:
-            detected_label = label
-            break
-
-    st.write(f"### 🏷️ Detected Drink Label: **{detected_label}**")
+st.write(f"### 🏷️ Detected Drink: **{selected_drink}**")
