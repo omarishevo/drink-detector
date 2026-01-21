@@ -1,67 +1,64 @@
 import streamlit as st
-import numpy as np
 from PIL import Image
-import tensorflow as tf
+import numpy as np
+import torch
+import torchvision.transforms as transforms
+from torchvision import models
 import os
+import gdown
 
-# -------------------------------
-# App Config
-# -------------------------------
 st.set_page_config(page_title="🥤 Drink Detector", layout="centered")
-st.title("🥤 Drink Label Detection System")
-st.write("Upload a drink image to identify its label or brand.")
+st.title("🥤 Drink Label Detection System (PyTorch Version)")
 
 # -------------------------------
-# Load Model (TensorFlow 2.20)
+# Download model (optional)
 # -------------------------------
-MODEL_PATH = "drink_detector.h5"
+MODEL_PATH = "drink_detector.pt"
+DRIVE_ID = "YOUR_MODEL_FILE_ID"
 
-@st.cache_resource
-def load_model(model_path):
-    if not os.path.exists(model_path):
-        st.error(f"Model file {model_path} not found! Upload it or download from hosted location.")
-        st.stop()
-    return tf.keras.models.load_model(model_path)
+if not os.path.exists(MODEL_PATH):
+    url = f"https://drive.google.com/uc?id={DRIVE_ID}"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
-model = load_model(MODEL_PATH)
+# -------------------------------
+# Load PyTorch model
+# -------------------------------
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = torch.load(MODEL_PATH, map_location=device)
+model.eval()
 
 # -------------------------------
 # Load Labels
 # -------------------------------
-LABELS_FILE = "labels.txt"
-
-if not os.path.exists(LABELS_FILE):
-    st.error(f"Labels file {LABELS_FILE} not found!")
-    st.stop()
-
-with open(LABELS_FILE, "r") as f:
+with open("labels.txt", "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 
 # -------------------------------
 # Image preprocessing
 # -------------------------------
-def preprocess_image(image: Image.Image):
-    image = image.resize((224, 224))
-    image = np.array(image) / 255.0
-    image = np.expand_dims(image, axis=0)
-    return image
+preprocess = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+])
+
+def predict(image: Image.Image):
+    img = preprocess(image).unsqueeze(0).to(device)
+    with torch.no_grad():
+        outputs = model(img)
+        probs = torch.softmax(outputs, dim=1)
+        confidence, idx = torch.max(probs, dim=1)
+    return class_names[idx.item()], confidence.item()
 
 # -------------------------------
-# Upload Image
+# Upload image
 # -------------------------------
 uploaded_file = st.file_uploader("Upload Drink Image", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
+if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     if st.button("Detect Drink Label"):
-        with st.spinner("Detecting..."):
-            img_array = preprocess_image(image)
-            predictions = model.predict(img_array)
-            confidence = np.max(predictions)
-            predicted_class = class_names[np.argmax(predictions)]
-
+        label, conf = predict(image)
         st.success("Detection Complete!")
-        st.write(f"### 🏷️ Predicted Drink: **{predicted_class}**")
-        st.write(f"### 📊 Confidence: **{confidence*100:.2f}%**")
+        st.write(f"### 🏷️ Predicted Drink: **{label}**")
+        st.write(f"### 📊 Confidence: **{conf*100:.2f}%**")
