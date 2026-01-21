@@ -1,8 +1,8 @@
-
 import streamlit as st
 import numpy as np
 from PIL import Image
 import tensorflow as tf
+import os
 
 # -------------------------------
 # App Config
@@ -12,24 +12,35 @@ st.title("🥤 Drink Label Detection System")
 st.write("Upload a drink image to identify its label or brand.")
 
 # -------------------------------
-# Load Model
+# Load Model (TensorFlow 2.20)
 # -------------------------------
-@st.cache_resource
-def load_model():
-    return tf.keras.models.load_model("drink_detector.h5")
+MODEL_PATH = "drink_detector.h5"
 
-model = load_model()
+@st.cache_resource
+def load_model(model_path):
+    if not os.path.exists(model_path):
+        st.error(f"Model file {model_path} not found! Upload it or download from hosted location.")
+        st.stop()
+    return tf.keras.models.load_model(model_path)
+
+model = load_model(MODEL_PATH)
 
 # -------------------------------
 # Load Labels
 # -------------------------------
-with open("labels.txt", "r") as f:
+LABELS_FILE = "labels.txt"
+
+if not os.path.exists(LABELS_FILE):
+    st.error(f"Labels file {LABELS_FILE} not found!")
+    st.stop()
+
+with open(LABELS_FILE, "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 
 # -------------------------------
-# Preprocess Image
+# Image preprocessing
 # -------------------------------
-def preprocess_image(image):
+def preprocess_image(image: Image.Image):
     image = image.resize((224, 224))
     image = np.array(image) / 255.0
     image = np.expand_dims(image, axis=0)
