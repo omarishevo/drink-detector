@@ -1,33 +1,41 @@
 import streamlit as st
-from PIL import Image, UnidentifiedImageError
-import requests
-from io import BytesIO
+import pandas as pd
 
-st.set_page_config(page_title="🥤 Auto Drink Detector", layout="centered")
-st.title("🥤 Drink Detector Demo (No Upload Needed)")
+st.set_page_config(page_title="🥤 Drink Label CSV & Detector", layout="centered")
+st.title("🥤 Drink Labels Collector & Detector")
 
-# Drink image URLs (direct image links)
-drink_data = {
-    "Coca-Cola": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_can.jpg",
-    "Pepsi": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Pepsi_can.jpg",
-    "Red Bull": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Red_Bull_can.jpg",
-    "Sprite": "https://upload.wikimedia.org/wikipedia/commons/3/36/Sprite_can.jpg",
-    "Fanta": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Fanta_can.jpg"
-}
+# -------------------------------
+# Step 1: Define drink labels
+# -------------------------------
+drink_labels = [
+    "Coca-Cola", "Pepsi", "Red Bull", "Sprite", "Fanta",
+    "Monster Energy", "Minute Maid", "Dasani", "Lipton Ice Tea",
+    "Milo", "Nestle Pure Life", "Aquafina", "Schweppes",
+    "7UP", "Lucozade", "Tropicana", "Heineken", "Guinness", "Baileys"
+]
 
-st.write("### Available Drinks")
-cols = st.columns(len(drink_data))
+# Create a DataFrame
+df = pd.DataFrame(drink_labels, columns=["Drink Label"])
 
-for col, (label, url) in zip(cols, drink_data.items()):
-    try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()  # check for HTTP errors
-        img = Image.open(BytesIO(response.content))
-        col.image(img, caption=label, use_column_width=True)
-    except (requests.RequestException, UnidentifiedImageError) as e:
-        col.write(f"Failed to load {label}")
-        print(f"Error loading {label}: {e}")
+# -------------------------------
+# Step 2: Display CSV and download
+# -------------------------------
+st.write("### All Drink Labels")
+st.dataframe(df)
 
-# User selects a drink to detect
-selected_drink = st.selectbox("Select a drink to detect:", list(drink_data.keys()))
+# Generate CSV for download
+csv = df.to_csv(index=False)
+st.download_button(
+    label="📥 Download Drink Labels CSV",
+    data=csv,
+    file_name="drink_labels.csv",
+    mime="text/csv"
+)
+
+# -------------------------------
+# Step 3: Detect a drink
+# -------------------------------
+st.write("### Detect a Drink Label")
+selected_drink = st.selectbox("Select a drink to detect:", df["Drink Label"].tolist())
+
 st.write(f"### 🏷️ Detected Drink: **{selected_drink}**")
