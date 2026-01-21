@@ -1,5 +1,6 @@
 streamlit==1.30.0
-tensorflow==2.20.0
+torch==2.1.0
+torchvision==0.16.0
 pillow==11.3.0
 numpy==1.26.0
-pandas==2.2.2
+gdown==4.7.1
