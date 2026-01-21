@@ -1,0 +1,95 @@
+import os
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D
+from tensorflow.keras.models import Sequential
+
+# -------------------------------
+# CONFIGURATION
+# -------------------------------
+DATASET_DIR = "dataset/drinks"  # Folder with subfolders for each brand
+IMG_SIZE = (224, 224)
+BATCH_SIZE = 32
+EPOCHS = 10   # Change as needed
+MODEL_PATH = "drink_detector.h5"
+LABELS_FILE = "labels.txt"
+
+# -------------------------------
+# 1️⃣ Generate labels.txt
+# -------------------------------
+labels = sorted([d for d in os.listdir(DATASET_DIR) if os.path.isdir(os.path.join(DATASET_DIR, d))])
+
+with open(LABELS_FILE, "w") as f:
+    for label in labels:
+        f.write(f"{label}\n")
+
+print(f"✅ labels.txt created with {len(labels)} classes")
+
+# -------------------------------
+# 2️⃣ Data generators
+# -------------------------------
+datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2,    # 80% training, 20% validation
+    rotation_range=20,
+    zoom_range=0.2,
+    horizontal_flip=True
+)
+
+train_gen = datagen.flow_from_directory(
+    DATASET_DIR,
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    subset="training",
+    class_mode="categorical"
+)
+
+val_gen = datagen.flow_from_directory(
+    DATASET_DIR,
+    target_size=IMG_SIZE,
+    batch_size=BATCH_SIZE,
+    subset="validation",
+    class_mode="categorical"
+)
+
+# -------------------------------
+# 3️⃣ Build Model (Transfer Learning)
+# -------------------------------
+base_model = MobileNetV2(
+    input_shape=(IMG_SIZE[0], IMG_SIZE[1], 3),
+    include_top=False,
+    weights="imagenet"
+)
+base_model.trainable = False   # Freeze base
+
+model = Sequential([
+    base_model,
+    GlobalAveragePooling2D(),
+    Dense(128, activation="relu"),
+    Dense(len(labels), activation="softmax")
+])
+
+model.compile(
+    optimizer="adam",
+    loss="categorical_crossentropy",
+    metrics=["accuracy"]
+)
+
+model.summary()
+
+# -------------------------------
+# 4️⃣ Train Model
+# -------------------------------
+history = model.fit(
+    train_gen,
+    validation_data=val_gen,
+    epochs=EPOCHS
+)
+
+# -------------------------------
+# 5️⃣ Save Trained Model
+# -------------------------------
+model.save(MODEL_PATH)
+print(f"✅ Model saved as {MODEL_PATH}")
