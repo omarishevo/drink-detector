@@ -7,25 +7,20 @@ import pandas as pd
 st.set_page_config(page_title="🥤 Drink Detector & CSV Generator", layout="centered")
 st.title("🥤 Drink Label Detector with CSV")
 
-# -------------------------------
-# Step 1: Define drinks and image URLs
-# -------------------------------
+# Stable drink image URLs (Imgur)
 drink_data = {
-    "Coca-Cola": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Coca-Cola_can.jpg",
-    "Pepsi": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Pepsi_can.jpg",
-    "Red Bull": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Red_Bull_can.jpg",
-    "Sprite": "https://upload.wikimedia.org/wikipedia/commons/3/36/Sprite_can.jpg",
-    "Fanta": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Fanta_can.jpg",
-    "Monster Energy": "https://upload.wikimedia.org/wikipedia/commons/2/25/Monster_Energy_can.jpg",
-    "Minute Maid": "https://upload.wikimedia.org/wikipedia/commons/f/f6/Minute_Maid_Orange.jpg",
-    "Dasani": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Dasani_bottle.jpg",
-    "Lipton Ice Tea": "https://upload.wikimedia.org/wikipedia/commons/4/44/Lipton_Ice_Tea.jpg",
-    "Milo": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Milo_can.jpg"
+    "Coca-Cola": "https://i.imgur.com/u6jhjJW.jpg",
+    "Pepsi": "https://i.imgur.com/7Z7FjQv.jpg",
+    "Red Bull": "https://i.imgur.com/2j1Nsdn.jpg",
+    "Sprite": "https://i.imgur.com/6fOeJ4K.jpg",
+    "Fanta": "https://i.imgur.com/g3cqTjB.jpg",
+    "Monster Energy": "https://i.imgur.com/q8b3bQX.jpg",
+    "Minute Maid": "https://i.imgur.com/Df3tEmk.jpg",
+    "Dasani": "https://i.imgur.com/R2krkVr.jpg",
+    "Lipton Ice Tea": "https://i.imgur.com/7kIYw0v.jpg",
+    "Milo": "https://i.imgur.com/NnJc5gK.jpg"
 }
 
-# -------------------------------
-# Step 2: Display drink images
-# -------------------------------
 st.write("### Available Drinks")
 cols = st.columns(len(drink_data))
 for col, (label, url) in zip(cols, drink_data.items()):
@@ -37,9 +32,7 @@ for col, (label, url) in zip(cols, drink_data.items()):
     except (requests.RequestException, UnidentifiedImageError) as e:
         col.write(f"Failed to load {label}")
 
-# -------------------------------
-# Step 3: Generate CSV
-# -------------------------------
+# Generate CSV
 df = pd.DataFrame(list(drink_data.keys()), columns=["Drink Label"])
 st.write("### All Drink Labels")
 st.dataframe(df)
@@ -52,9 +45,7 @@ st.download_button(
     mime="text/csv"
 )
 
-# -------------------------------
-# Step 4: Detect a drink
-# -------------------------------
+# Detect a drink
 st.write("### Detect a Drink")
 selected_drink = st.selectbox("Select a drink to detect:", df["Drink Label"].tolist())
 st.write(f"### 🏷️ Detected Drink: **{selected_drink}**")
