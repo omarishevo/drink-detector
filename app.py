@@ -5,7 +5,7 @@ from io import BytesIO
 import pandas as pd
 
 st.set_page_config(page_title="🥤 Drink Detector & CSV Generator", layout="centered")
-st.title("🥤 Drink Label Detector with CSV (Stable Version)")
+st.title("🥤 Drink Label Detector with CSV (Auto-Loading)")
 
 # -------------------------------
 # Step 1: Define 20 stable drink image URLs (Imgur)
@@ -34,25 +34,44 @@ drink_data = {
 }
 
 # -------------------------------
-# Step 2: Display drink images
+# Helper function to load images from URLs
 # -------------------------------
-st.write("### Available Drinks")
-cols = st.columns(len(drink_data)//2)  # display in 2 rows
-for i, (label, url) in enumerate(drink_data.items()):
+@st.cache_data
+def load_image_from_url(url):
+    """Load image from URL with caching"""
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         img = Image.open(BytesIO(response.content))
-        cols[i % len(cols)].image(img, caption=label, use_column_width=True)
+        return img
     except (requests.RequestException, UnidentifiedImageError) as e:
-        cols[i % len(cols)].write(f"Failed to load {label}")
+        return None
+
+# -------------------------------
+# Step 2: Display drink images automatically
+# -------------------------------
+st.write("### 📸 Available Drinks (Auto-Loaded)")
+st.info("All images are automatically loaded from URLs - no uploads needed!")
+
+# Create a grid layout for better display
+num_cols = 4
+cols = st.columns(num_cols)
+
+for i, (label, url) in enumerate(drink_data.items()):
+    with cols[i % num_cols]:
+        img = load_image_from_url(url)
+        if img:
+            st.image(img, caption=label, use_container_width=True)
+        else:
+            st.warning(f"❌ {label}")
 
 # -------------------------------
 # Step 3: Generate CSV of all drink labels
 # -------------------------------
+st.write("---")
+st.write("### 📊 All Drink Labels")
 df = pd.DataFrame(list(drink_data.keys()), columns=["Drink Label"])
-st.write("### All Drink Labels")
-st.dataframe(df)
+st.dataframe(df, use_container_width=True)
 
 csv = df.to_csv(index=False)
 st.download_button(
@@ -63,8 +82,44 @@ st.download_button(
 )
 
 # -------------------------------
-# Step 4: Detect a drink
+# Step 4: Detect a drink (Auto-display selected image)
 # -------------------------------
-st.write("### Detect a Drink")
+st.write("---")
+st.write("### 🔍 Detect a Drink")
 selected_drink = st.selectbox("Select a drink to detect:", df["Drink Label"].tolist())
-st.write(f"### 🏷️ Detected Drink: **{selected_drink}**")
+
+# Automatically display the selected drink's image
+col1, col2 = st.columns([1, 2])
+
+with col1:
+    selected_url = drink_data[selected_drink]
+    selected_img = load_image_from_url(selected_url)
+    if selected_img:
+        st.image(selected_img, use_container_width=True)
+    else:
+        st.error("Failed to load image")
+
+with col2:
+    st.write(f"### 🏷️ Detected Drink:")
+    st.success(f"**{selected_drink}**")
+    st.write(f"**Image URL:** {selected_url}")
+    
+    # Additional info
+    st.info(f"✅ This drink has been automatically detected and loaded from the database!")
+
+# -------------------------------
+# Optional: Batch processing section
+# -------------------------------
+st.write("---")
+st.write("### 🔄 Batch Process All Drinks")
+if st.button("Process All Drinks"):
+    with st.spinner("Processing all drinks..."):
+        results = []
+        for label, url in drink_data.items():
+            img = load_image_from_url(url)
+            status = "✅ Loaded" if img else "❌ Failed"
+            results.append({"Drink": label, "Status": status, "URL": url})
+        
+        results_df = pd.DataFrame(results)
+        st.dataframe(results_df, use_container_width=True)
+        st.success(f"Processed {len(results)} drinks!")
