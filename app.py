@@ -44,7 +44,7 @@ def load_drink_database():
     
     # Sample image URLs (using Imgur for stability)
     image_urls = {
-        "Coca-Cola": "https://i.imgur.com/u6jhjJW.jpg",
+        "Coca-Cola": "C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\cocacola.jpg",
         "Pepsi": "https://i.imgur.com/7Z7FjQv.jpg",
         "Red Bull": "https://i.imgur.com/2j1Nsdn.jpg",
         "Sprite": "https://i.imgur.com/6fOeJ4K.jpg",
@@ -277,3 +277,4 @@ with tab4:
 # -------------------------------
 st.write("---")
 st.caption("🥤 Drink Detector & Database System | Powered by Streamlit & Comprehensive CSV Database")
+
