@@ -14,10 +14,6 @@ st.title("🥤 Drink Label Detector & CSV Generator")
 # -------------------------------
 IMAGE_DIR = "images"
 
-# Ensure folder exists
-if not os.path.exists(IMAGE_DIR):
-    os.makedirs(IMAGE_DIR)
-
 # -------------------------------
 # LOAD DATABASE
 # -------------------------------
@@ -72,15 +68,12 @@ def load_drink_database():
 drinks_df = load_drink_database()
 
 # -------------------------------
-# LOAD IMAGE SAFELY
+# LOAD IMAGE
 # -------------------------------
 @st.cache_data
 def load_image(path):
-    if path and os.path.exists(path):
-        try:
-            return Image.open(path).convert("RGB")
-        except:
-            return None
+    if os.path.exists(path):
+        return Image.open(path).convert("RGB")
     return None
 
 # -------------------------------
@@ -91,23 +84,8 @@ with st.sidebar:
     st.metric("Total Drinks", len(drinks_df))
     st.metric("Categories", drinks_df["Category"].nunique())
     st.metric("Brands", drinks_df["Brand"].nunique())
-
-    # Show missing images
-    missing_images = drinks_df[~drinks_df["Image_Path"].apply(os.path.exists)]
-    if not missing_images.empty:
-        st.warning(f"{len(missing_images)} images are missing. Upload below:")
-        uploaded_files = st.file_uploader(
-            "Upload missing drink images",
-            type=["jpg", "jpeg", "png"],
-            accept_multiple_files=True
-        )
-        if uploaded_files:
-            for file in uploaded_files:
-                file_path = os.path.join(IMAGE_DIR, file.name)
-                with open(file_path, "wb") as f:
-                    f.write(file.getbuffer())
-            st.success("Images uploaded successfully!")
-
+    missing_count = len([p for p in drinks_df["Image_Path"] if not os.path.exists(p)])
+    st.write(f"Images Missing: {missing_count}")
     st.download_button(
         "📥 Download Full Database CSV",
         drinks_df.to_csv(index=False),
@@ -131,7 +109,7 @@ with tab1:
         if img:
             st.image(img, use_container_width=True)
         else:
-            st.warning("Image not available")
+            st.warning("Image not found")
     with col2:
         st.success(f"**Brand:** {drink['Brand']}")
         st.write(f"**Label:** {drink['Label']}")
@@ -153,7 +131,7 @@ with tab3:
     st.dataframe(drinks_df, use_container_width=True)
 
 # -------------------------------
-# Footer
+# FOOTER
 # -------------------------------
 st.write("---")
-st.caption("🥤 Drink Detector | Includes all 19 drinks and handles missing images")
+st.caption("🥤 Drink Label Detector | All 19 drinks loaded from repository")
