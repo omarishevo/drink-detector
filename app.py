@@ -3,13 +3,17 @@ from PIL import Image
 import pandas as pd
 import os
 
-st.set_page_config(page_title="🥤 Drink Detector & CSV Generator", layout="wide")
-st.title("🥤 Drink Label Detector with Complete Database")
+st.set_page_config(page_title="🥤 Drink Detector", layout="wide")
+st.title("🥤 Drink Label Detector & CSV Generator")
 
 # -------------------------------
 # IMAGE DIRECTORY
 # -------------------------------
 IMAGE_DIR = "images"
+
+# Ensure folder exists
+if not os.path.exists(IMAGE_DIR):
+    os.makedirs(IMAGE_DIR)
 
 # -------------------------------
 # Load drink database
@@ -17,62 +21,29 @@ IMAGE_DIR = "images"
 @st.cache_data
 def load_drink_database():
     data = {
-        "Category": [
-            "Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic",
-            "Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic",
-            "Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Alcoholic","Alcoholic",
-            "Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic"
-        ],
-        "Type": [
-            "Soft Drink","Soft Drink","Energy Drink","Soft Drink","Soft Drink",
-            "Energy Drink","Juice","Water","Tea","Coffee",
-            "Soft Drink","Energy Drink","Juice","Beer","Beer",
-            "Liqueur","Water","Soft Drink","Water","Tea"
-        ],
-        "Subtype": [
-            "Cola","Cola","Regular","Lemon-Lime","Orange Soda",
-            "Regular","Orange Juice","Mineral Water","Iced Tea","Chocolate Drink",
-            "Lemon-Lime","Sports Drink","Orange Juice","Lager","Stout",
-            "Cream Liqueur","Purified Water","Ginger Ale","Spring Water","Black Tea"
-        ],
-        "Brand": [
-            "Coca-Cola","Pepsi","Red Bull","Sprite","Fanta",
-            "Monster","Minute Maid","Dasani","Lipton","Milo",
-            "7UP","Lucozade","Tropicana","Heineken","Guinness",
-            "Baileys","Aquafina","Schweppes","Nestle","Lipton"
-        ],
-        "Label": [
-            "Carbonated Soft Drink","Cola Carbonated Soft Drink","Energy Drink",
-            "Lemon-Lime Flavored Soda","Orange Flavored Soft Drink",
-            "Energy Drink","Premium Orange Juice","Purified Water",
-            "Iced Tea","Chocolate Malt Drink",
-            "Lemon Lime Soda","Energy Drink","100% Pure Orange Juice",
-            "Premium Lager Beer","Draught Stout",
-            "Irish Cream","Purified Drinking Water","Ginger Ale",
-            "Pure Life Water","Yellow Label Tea"
-        ],
-        "Image_File": [
-            "cocacola.jpg","pepsi.jpg","redbull.jpg","sprite.jpg","fanta.jpg",
-            "monster.jpg","minute_maid.jpg","dasani.jpg","lipton.jpg","milo.jpg",
-            "7up.jpg","lucozade.jpg","tropicana.jpg","heineken.jpg","guinness.jpg",
-            "baileys.jpg","aquafina.jpg","schweppes.jpg","nestle.jpg","lipton.jpg"
-        ]
+        "Category": ["Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic",
+                     "Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic","Non-Alcoholic"],
+        "Type": ["Soft Drink","Soft Drink","Energy Drink","Soft Drink","Soft Drink",
+                 "Energy Drink","Juice","Water","Tea","Coffee"],
+        "Subtype": ["Cola","Cola","Regular","Lemon-Lime","Orange Soda",
+                    "Regular","Orange Juice","Mineral Water","Iced Tea","Chocolate Drink"],
+        "Brand": ["Coca-Cola","Pepsi","Red Bull","Sprite","Fanta",
+                  "Monster","Minute Maid","Dasani","Lipton","Milo"],
+        "Label": ["Carbonated Soft Drink","Cola Carbonated Soft Drink","Energy Drink",
+                  "Lemon-Lime Soda","Orange Soda","Energy Drink",
+                  "Premium Orange Juice","Purified Water","Iced Tea","Chocolate Malt Drink"],
+        "Image_File": ["cocacola.jpg","pepsi.jpg","redbull.jpg","sprite.jpg","fanta.jpg",
+                       "monster.jpg","minute_maid.jpg","dasani.jpg","lipton.jpg","milo.jpg"]
     }
-
     df = pd.DataFrame(data)
-
-    # Add image paths only if folder exists
-    if os.path.exists(IMAGE_DIR):
-        df["Image_Path"] = df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
-    else:
-        df["Image_Path"] = None
-
+    # Add full image paths
+    df["Image_Path"] = df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
     return df
 
 drinks_df = load_drink_database()
 
 # -------------------------------
-# Image loader
+# Load image safely
 # -------------------------------
 @st.cache_data
 def load_image(path):
@@ -92,28 +63,24 @@ with st.sidebar:
     st.metric("Categories", drinks_df["Category"].nunique())
     st.metric("Brands", drinks_df["Brand"].nunique())
 
-    if os.path.exists(IMAGE_DIR):
-        st.write(f"📂 Images found: {len(os.listdir(IMAGE_DIR))}")
-    else:
-        st.warning("⚠️ Images folder is missing. You can upload images below.")
-
-        # Allow manual image uploads
+    # Check if images exist
+    missing_images = drinks_df[~drinks_df["Image_Path"].apply(os.path.exists)]
+    if not missing_images.empty:
+        st.warning(f"{len(missing_images)} images are missing. Upload below:")
         uploaded_files = st.file_uploader(
-            "Upload your drink images",
+            "Upload missing drink images",
             type=["jpg", "jpeg", "png"],
             accept_multiple_files=True
         )
-
         if uploaded_files:
-            os.makedirs(IMAGE_DIR, exist_ok=True)
             for file in uploaded_files:
-                with open(os.path.join(IMAGE_DIR, file.name), "wb") as f:
+                file_path = os.path.join(IMAGE_DIR, file.name)
+                with open(file_path, "wb") as f:
                     f.write(file.getbuffer())
             st.success("Images uploaded successfully!")
-            drinks_df["Image_Path"] = drinks_df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
 
     st.download_button(
-        "📥 Download CSV",
+        "📥 Download Full Database CSV",
         drinks_df.to_csv(index=False),
         "drink_labels_database.csv",
         "text/csv"
@@ -124,7 +91,7 @@ with st.sidebar:
 # -------------------------------
 tab1, tab2, tab3 = st.tabs(["🔍 Detect Drink", "📸 Gallery", "📊 Database"])
 
-# Detect
+# Detect Drink
 with tab1:
     brand = st.selectbox("Select Brand", drinks_df["Brand"].unique())
     drink = drinks_df[drinks_df["Brand"] == brand].iloc[0]
@@ -136,7 +103,6 @@ with tab1:
             st.image(img, use_container_width=True)
         else:
             st.warning("Image not available")
-
     with col2:
         st.success(f"**Brand:** {drink['Brand']}")
         st.write(f"**Label:** {drink['Label']}")
@@ -159,4 +125,4 @@ with tab3:
 
 # Footer
 st.write("---")
-st.caption("🥤 Drink Detector | Supports Missing Images & Manual Upload")
+st.caption("🥤 Drink Detector | Automatically creates images folder if missing")
