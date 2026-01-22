@@ -54,7 +54,7 @@ def load_drink_database():
         "Dasani": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\dasani.jpg",
         "Lipton": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lipton.jpg",
         "Milo": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\milo.jpg",
-        "7UP": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\7up.jpg",
+        "7UP": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\7UP.jpg",
         "Lucozade": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lucozade.jpg",
         "Tropicana": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\tropicana.jpg",
         "Heineken": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\heineken.jpg",
@@ -376,3 +376,4 @@ image_paths = {
 # -------------------------------
 st.write("---")
 st.caption("🥤 Drink Detector & Database System | Local File Path Support | Powered by Streamlit")
+
