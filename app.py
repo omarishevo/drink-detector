@@ -6,6 +6,9 @@ import os
 st.set_page_config(page_title="🥤 Drink Detector & CSV Generator", layout="wide")
 st.title("🥤 Drink Label Detector with Complete Database")
 
+# -------------------------------
+# IMAGE DIRECTORY
+# -------------------------------
 IMAGE_DIR = "images"
 
 # -------------------------------
@@ -57,25 +60,28 @@ def load_drink_database():
     }
 
     df = pd.DataFrame(data)
-    df["Image_Path"] = df["Image_File"].apply(
-        lambda x: os.path.join(IMAGE_DIR, x)
-    )
+
+    # Add image paths only if folder exists
+    if os.path.exists(IMAGE_DIR):
+        df["Image_Path"] = df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
+    else:
+        df["Image_Path"] = None
 
     return df
 
 drinks_df = load_drink_database()
 
 # -------------------------------
-# Image loader (LOCAL FILES)
+# Image loader
 # -------------------------------
 @st.cache_data
 def load_image(path):
-    try:
-        if os.path.exists(path):
+    if path and os.path.exists(path):
+        try:
             return Image.open(path).convert("RGB")
-        return None
-    except Exception:
-        return None
+        except:
+            return None
+    return None
 
 # -------------------------------
 # Sidebar
@@ -86,11 +92,25 @@ with st.sidebar:
     st.metric("Categories", drinks_df["Category"].nunique())
     st.metric("Brands", drinks_df["Brand"].nunique())
 
-    st.write("📂 Images found:")
     if os.path.exists(IMAGE_DIR):
-        st.write(len(os.listdir(IMAGE_DIR)))
+        st.write(f"📂 Images found: {len(os.listdir(IMAGE_DIR))}")
     else:
-        st.error("images folder missing")
+        st.warning("⚠️ Images folder is missing. You can upload images below.")
+
+        # Allow manual image uploads
+        uploaded_files = st.file_uploader(
+            "Upload your drink images",
+            type=["jpg", "jpeg", "png"],
+            accept_multiple_files=True
+        )
+
+        if uploaded_files:
+            os.makedirs(IMAGE_DIR, exist_ok=True)
+            for file in uploaded_files:
+                with open(os.path.join(IMAGE_DIR, file.name), "wb") as f:
+                    f.write(file.getbuffer())
+            st.success("Images uploaded successfully!")
+            drinks_df["Image_Path"] = drinks_df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
 
     st.download_button(
         "📥 Download CSV",
@@ -139,4 +159,4 @@ with tab3:
 
 # Footer
 st.write("---")
-st.caption("🥤 Drink Detector | Local Image Repository Version")
+st.caption("🥤 Drink Detector | Supports Missing Images & Manual Upload")
