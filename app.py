@@ -3,6 +3,7 @@ from PIL import Image, UnidentifiedImageError
 import requests
 from io import BytesIO
 import pandas as pd
+import os
 
 st.set_page_config(page_title="🥤 Drink Detector & CSV Generator", layout="wide")
 st.title("🥤 Drink Label Detector with Complete Database")
@@ -13,8 +14,6 @@ st.title("🥤 Drink Label Detector with Complete Database")
 @st.cache_data
 def load_drink_database():
     """Load the complete drink labels CSV database"""
-    # This would normally load from your drink_labels_brands.csv file
-    # For now, we'll create the data structure based on the CSV
     data = {
         'Category': ['Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic', 
                      'Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic', 'Non-Alcoholic',
@@ -31,7 +30,7 @@ def load_drink_database():
         'Brand': ['Coca-Cola', 'Pepsi', 'Red Bull', 'Sprite', 'Fanta',
                   'Monster', 'Minute Maid', 'Dasani', 'Lipton', 'Milo',
                   '7UP', 'Lucozade', 'Tropicana', 'Heineken', 'Guinness',
-                  'Baileys', 'Aquafina', 'Schweppes', 'Nestle', 'Lipton'],
+                  'Baileys', 'Aquafina', 'Schweppes', 'Nestle', 'Lipton Tea'],
         'Label': ['Carbonated Soft Drink', 'Cola Carbonated Soft Drink', 'Energy Drink', 
                   'Lemon-Lime Flavored Soda', 'Orange Flavored Soft Drink',
                   'Energy Drink', 'Premium Orange Juice', 'Purified Water', 
@@ -42,51 +41,54 @@ def load_drink_database():
                   'Pure Life Water', 'Yellow Label Tea']
     }
     
-    # Sample image URLs (using Imgur for stability)
-    image_urls = {
-        "Coca-Cola": "C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\cocacola.jpg",
-        "Pepsi": "https://i.imgur.com/7Z7FjQv.jpg",
-        "Red Bull": "https://i.imgur.com/2j1Nsdn.jpg",
-        "Sprite": "https://i.imgur.com/6fOeJ4K.jpg",
-        "Fanta": "https://i.imgur.com/g3cqTjB.jpg",
-        "Monster": "https://i.imgur.com/q8b3bQX.jpg",
-        "Minute Maid": "https://i.imgur.com/Df3tEmk.jpg",
-        "Dasani": "https://i.imgur.com/R2krkVr.jpg",
-        "Lipton": "https://i.imgur.com/7kIYw0v.jpg",
-        "Milo": "https://i.imgur.com/NnJc5gK.jpg",
-        "7UP": "https://i.imgur.com/3xQ9s5x.jpg",
-        "Lucozade": "https://i.imgur.com/5cUoFkg.jpg",
-        "Tropicana": "https://i.imgur.com/1D8ZxjM.jpg",
-        "Heineken": "https://i.imgur.com/3bI7tGb.jpg",
-        "Guinness": "https://i.imgur.com/8O1r2Qo.jpg",
-        "Baileys": "https://i.imgur.com/nR3e2Yv.jpg",
-        "Aquafina": "https://i.imgur.com/w8uZ1vN.jpg",
-        "Schweppes": "https://i.imgur.com/Gh5XQ3K.jpg",
-        "Nestle": "https://i.imgur.com/VGQf6Wz.jpg",
+    # Image paths - REPLACE THESE WITH YOUR LOCAL FILE PATHS
+    # Format: r"C:\path\to\your\image.jpg" or just use forward slashes
+    image_paths = {
+        "Coca-Cola": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\cocacola.jpg",
+        "Pepsi": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\pepsi.jpg",
+        "Red Bull": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\redbull.jpg",
+        "Sprite": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\sprite.jpg",
+        "Fanta": r""C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\fanta.jpg",
+        "Monster": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\monster.jpg",
+        "Minute Maid": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\minutemaid.jpg",
+        "Dasani": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\dasani.jpg",
+        "Lipton": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lipton.jpg",
+        "Milo": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\milo.jpg",
+        "7UP": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\7up.jpg",
+        "Lucozade": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lucozade.jpg",
+        "Tropicana": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\tropicana.jpg",
+        "Heineken": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\heineken.jpg",
+        "Guinness": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\guinness.jpg",
+        "Baileys": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\baileys.jpg",
+        "Aquafina": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\aquafina.jpg",
+        "Schweppes": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\schweppes.jpg",
+        "Nestle": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\nestle.jpg",
+        "Lipton Tea": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lipton_tea.jpg",
     }
     
     df = pd.DataFrame(data)
-    return df, image_urls
+    return df, image_paths
 
 # Load the database
-drinks_df, image_urls = load_drink_database()
+drinks_df, image_paths = load_drink_database()
 
 # -------------------------------
-# Helper function to load images from URLs
+# Helper function to load images from local file paths
 # -------------------------------
 @st.cache_data
-def load_image_from_url(url):
-    """Load image from URL with caching"""
+def load_image_from_path(path):
+    """Load image from local file path with caching"""
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        img = Image.open(BytesIO(response.content))
-        return img
-    except (requests.RequestException, UnidentifiedImageError) as e:
+        if os.path.exists(path):
+            img = Image.open(path)
+            return img
+        else:
+            return None
+    except (FileNotFoundError, UnidentifiedImageError, PermissionError) as e:
         return None
 
 # -------------------------------
-# Sidebar: Database Statistics
+# Sidebar: Database Statistics & Image Path Manager
 # -------------------------------
 with st.sidebar:
     st.header("📊 Database Stats")
@@ -102,6 +104,19 @@ with st.sidebar:
         st.write(f"**{cat}:** {count}")
     
     st.write("---")
+    
+    # Image status check
+    st.write("### 📷 Image Status")
+    images_found = sum(1 for path in image_paths.values() if os.path.exists(path))
+    images_missing = len(image_paths) - images_found
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Found", images_found, delta_color="normal")
+    with col2:
+        st.metric("Missing", images_missing, delta_color="inverse")
+    
+    st.write("---")
     st.download_button(
         label="📥 Download Full Database CSV",
         data=drinks_df.to_csv(index=False),
@@ -113,7 +128,13 @@ with st.sidebar:
 # -------------------------------
 # Main Content: Tabs for different views
 # -------------------------------
-tab1, tab2, tab3, tab4 = st.tabs(["🔍 Detect Drink", "📸 Browse Gallery", "📊 Database View", "🔄 Batch Process"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "🔍 Detect Drink", 
+    "📸 Browse Gallery", 
+    "📊 Database View", 
+    "🔄 Batch Process",
+    "⚙️ Image Path Manager"
+])
 
 # TAB 1: Detect Drink
 with tab1:
@@ -145,14 +166,17 @@ with tab1:
     col_img, col_info = st.columns([1, 2])
     
     with col_img:
-        if selected_brand in image_urls:
-            img = load_image_from_url(image_urls[selected_brand])
+        if selected_brand in image_paths:
+            img_path = image_paths[selected_brand]
+            img = load_image_from_path(img_path)
             if img:
                 st.image(img, use_container_width=True)
+                st.caption(f"✅ Image loaded successfully")
             else:
-                st.info("Image not available")
+                st.warning(f"⚠️ Image not found at path")
+                st.caption(f"Please check: {img_path}")
         else:
-            st.info("Image not available for this brand")
+            st.info("Image path not configured for this brand")
     
     with col_info:
         st.write("### 🏷️ Detected Drink Information")
@@ -162,8 +186,16 @@ with tab1:
         st.write(f"**Type:** {drink_info['Type']}")
         st.write(f"**Subtype:** {drink_info['Subtype']}")
         
-        if selected_brand in image_urls:
-            st.code(f"Image URL: {image_urls[selected_brand]}", language="text")
+        if selected_brand in image_paths:
+            st.write("### 📁 Image File Path")
+            st.code(image_paths[selected_brand], language="text")
+            
+            # Check if file exists
+            if os.path.exists(image_paths[selected_brand]):
+                file_size = os.path.getsize(image_paths[selected_brand]) / 1024  # KB
+                st.success(f"✅ File exists ({file_size:.2f} KB)")
+            else:
+                st.error("❌ File not found at this path")
 
 # TAB 2: Browse Gallery
 with tab2:
@@ -171,7 +203,7 @@ with tab2:
     st.info("Browse all available drink images in the database")
     
     num_cols = 4
-    brands_with_images = [b for b in drinks_df['Brand'].unique() if b in image_urls]
+    brands_with_images = list(drinks_df['Brand'].unique())
     
     for i in range(0, len(brands_with_images), num_cols):
         cols = st.columns(num_cols)
@@ -179,11 +211,18 @@ with tab2:
             if i + j < len(brands_with_images):
                 brand = brands_with_images[i + j]
                 with col:
-                    img = load_image_from_url(image_urls[brand])
-                    if img:
-                        st.image(img, caption=brand, use_container_width=True)
-                        drink_detail = drinks_df[drinks_df['Brand'] == brand].iloc[0]
-                        st.caption(f"{drink_detail['Type']} - {drink_detail['Category']}")
+                    if brand in image_paths:
+                        img = load_image_from_path(image_paths[brand])
+                        if img:
+                            st.image(img, caption=brand, use_container_width=True)
+                            drink_detail = drinks_df[drinks_df['Brand'] == brand].iloc[0]
+                            st.caption(f"{drink_detail['Type']} - {drink_detail['Category']}")
+                        else:
+                            st.error(f"❌ {brand}")
+                            st.caption("Image not found")
+                    else:
+                        st.warning(f"⚠️ {brand}")
+                        st.caption("No path configured")
 
 # TAB 3: Database View
 with tab3:
@@ -226,23 +265,37 @@ with tab4:
             brand = row['Brand']
             status_text.text(f"Processing {brand}... ({idx + 1}/{total})")
             
-            # Check if image exists
-            has_image = brand in image_urls
-            image_status = "✅ Available" if has_image else "❌ No Image"
+            # Check if image path exists
+            has_path = brand in image_paths
+            path_status = "✅ Path Configured" if has_path else "❌ No Path"
             
-            # Try to load image if URL exists
+            # Try to load image if path exists
             load_status = "N/A"
-            if has_image:
-                img = load_image_from_url(image_urls[brand])
-                load_status = "✅ Loaded" if img else "❌ Failed to Load"
+            file_exists = "N/A"
+            file_size = "N/A"
+            
+            if has_path:
+                path = image_paths[brand]
+                if os.path.exists(path):
+                    file_exists = "✅ File Found"
+                    size = os.path.getsize(path) / 1024
+                    file_size = f"{size:.2f} KB"
+                    
+                    img = load_image_from_path(path)
+                    load_status = "✅ Loaded" if img else "❌ Failed to Load"
+                else:
+                    file_exists = "❌ File Not Found"
+                    load_status = "❌ Cannot Load"
             
             results.append({
                 "Brand": brand,
                 "Category": row['Category'],
                 "Type": row['Type'],
                 "Label": row['Label'],
-                "Image Status": image_status,
-                "Load Status": load_status
+                "Path Status": path_status,
+                "File Status": file_exists,
+                "Load Status": load_status,
+                "File Size": file_size
             })
             
             progress_bar.progress((idx + 1) / total)
@@ -254,14 +307,17 @@ with tab4:
         st.dataframe(results_df, use_container_width=True)
         
         # Summary
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.metric("Total Processed", len(results_df))
         with col2:
-            images_available = len([r for r in results if "Available" in r["Image Status"]])
-            st.metric("Images Available", images_available)
+            paths_configured = len([r for r in results if "Configured" in r["Path Status"]])
+            st.metric("Paths Configured", paths_configured)
         with col3:
-            successfully_loaded = len([r for r in results if "Loaded" in r["Load Status"]])
+            files_found = len([r for r in results if "File Found" in r["File Status"]])
+            st.metric("Files Found", files_found)
+        with col4:
+            successfully_loaded = len([r for r in results if r["Load Status"] == "✅ Loaded"])
             st.metric("Successfully Loaded", successfully_loaded)
         
         # Download results
@@ -272,9 +328,51 @@ with tab4:
             mime="text/csv"
         )
 
+# TAB 5: Image Path Manager
+with tab5:
+    st.write("### ⚙️ Image Path Manager")
+    st.info("View and copy image file paths for all drinks")
+    
+    st.write("#### 📋 All Image Paths")
+    st.write("Copy and paste these paths to configure your image locations:")
+    
+    # Create a dataframe with paths
+    path_data = []
+    for brand, path in image_paths.items():
+        exists = os.path.exists(path)
+        status = "✅ Found" if exists else "❌ Missing"
+        path_data.append({
+            "Brand": brand,
+            "File Path": path,
+            "Status": status
+        })
+    
+    paths_df = pd.DataFrame(path_data)
+    st.dataframe(paths_df, use_container_width=True)
+    
+    st.write("---")
+    st.write("#### 📝 Path Template")
+    st.write("Use this template to update your image paths in the code:")
+    
+    template = """
+# Copy this into the load_drink_database() function:
+image_paths = {
+"""
+    for brand in drinks_df['Brand'].unique():
+        template += f'    "{brand}": r"C:\\path\\to\\your\\images\\{brand.lower().replace(" ", "_")}.jpg",\n'
+    template += "}"
+    
+    st.code(template, language="python")
+    
+    st.write("---")
+    st.write("#### 💡 Tips:")
+    st.write("1. Use the `r` prefix before strings to handle Windows paths correctly")
+    st.write("2. Use double backslashes `\\\\` or forward slashes `/` in paths")
+    st.write("3. Example: `r'C:\\Users\\Admin\\Images\\coca-cola.jpg'`")
+    st.write("4. Place all images in one folder for easier management")
+
 # -------------------------------
 # Footer
 # -------------------------------
 st.write("---")
-st.caption("🥤 Drink Detector & Database System | Powered by Streamlit & Comprehensive CSV Database")
-
+st.caption("🥤 Drink Detector & Database System | Local File Path Support | Powered by Streamlit")
