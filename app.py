@@ -192,3 +192,4 @@ with tab3:
 # --------------------------------------------------
 st.write("---")
 st.caption("🥤 Drink Label Detector | Streamlit Deployment Ready")
+
