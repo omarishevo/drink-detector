@@ -62,7 +62,10 @@ def load_drink_database():
     }
 
     df = pd.DataFrame(data)
+    # Add full path
     df["Image_Path"] = df["Image_File"].apply(lambda x: os.path.join(IMAGE_DIR, x))
+    # Keep only rows with existing images
+    df = df[df["Image_Path"].apply(os.path.exists)].reset_index(drop=True)
     return df
 
 drinks_df = load_drink_database()
@@ -84,8 +87,6 @@ with st.sidebar:
     st.metric("Total Drinks", len(drinks_df))
     st.metric("Categories", drinks_df["Category"].nunique())
     st.metric("Brands", drinks_df["Brand"].nunique())
-    missing_count = len([p for p in drinks_df["Image_Path"] if not os.path.exists(p)])
-    st.write(f"Images Missing: {missing_count}")
     st.download_button(
         "📥 Download Full Database CSV",
         drinks_df.to_csv(index=False),
@@ -134,4 +135,4 @@ with tab3:
 # FOOTER
 # -------------------------------
 st.write("---")
-st.caption("🥤 Drink Label Detector | All 19 drinks loaded from repository")
+st.caption("🥤 Drink Label Detector | Only drinks with existing images are loaded")
