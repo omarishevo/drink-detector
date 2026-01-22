@@ -48,7 +48,7 @@ def load_drink_database():
         "Pepsi": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\pepsi.jpg",
         "Red Bull": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\redbull.jpg",
         "Sprite": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\sprite.jpg",
-        "Fanta": r""C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\fanta.jpg",
+        "Fanta": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\fanta.jpg",
         "Monster": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\monster.jpg",
         "Minute Maid": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\minutemaid.jpg",
         "Dasani": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\dasani.jpg",
@@ -63,7 +63,7 @@ def load_drink_database():
         "Aquafina": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\aquafina.jpg",
         "Schweppes": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\schweppes.jpg",
         "Nestle": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\nestle.jpg",
-        "Lipton Tea": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lipton_tea.jpg",
+        "Lipton Tea": r"C:\Users\Administrator\OneDrive\Documentos\Imagens\abkul.nn\lipton_tea.jpg"
     }
     
     df = pd.DataFrame(data)
